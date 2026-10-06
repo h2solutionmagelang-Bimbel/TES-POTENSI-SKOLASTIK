@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TES POTENSI SKOLASTIK</title>
+<style>
+:root{
+  --navy:#1e3a5f;
+  --navy-dark:#152b47;
+  --slate:#3d5a80;
+  --amber:#e8a33d;
+  --amber-dark:#c9822a;
+  --paper:#f7f5f0;
+  --paper-2:#eeebe3;
+  --ink:#26313f;
+  --ink-soft:#5a6a7a;
+  --line:#d8d2c4;
+  --ok:#2f7a4f;
+  --ok-bg:#e5f3ea;
+  --bad:#b5432f;
+  --bad-bg:#fbe9e6;
+  --white:#ffffff;
+  --radius:10px;
+  --sidebar-w:280px;
+  --header-h:64px;
+  font-size:16px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:"Segoe UI",Verdana,Tahoma,sans-serif;
+  background:var(--paper-2);
+  color:var(--ink);
+  overflow:hidden;
+}
+button{font-family:inherit;cursor:pointer;}
+input,textarea,select{font-family:inherit;}
+::selection{background:var(--amber);color:var(--navy-dark);}
+
+/* ---------- App shell ---------- */
+#app{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+/* ---------- Header ---------- */
+#header{
+  height:var(--header-h);
+  flex:0 0 auto;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);
+  color:var(--white);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  z-index:20;
+}
+#hamburger{
+  flex:0 0 auto;
+  width:40px;height:40px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.08);
+  color:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+#hamburger:active{background:rgba(255,255,255,.2);}
+#header-text{flex:1 1 auto;min-width:0;}
+#header-text h1{
+  font-size:15px;
+  margin:0;
+  font-weight:700;
+  letter-spacing:.2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#header-text p{
+  margin:2px 0 0;
+  font-size:11.5px;
+  color:#c7d3e0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#header-progress{
+  flex:0 0 auto;
+  text-align:right;
+  font-size:12px;
+  color:#e8ecf1;
+}
+#header-progress b{color:var(--amber);font-size:15px;}
+#header-progress-bar{
+  width:90px;height:5px;border-radius:3px;
+  background:rgba(255,255,255,.2);
+  margin-top:5px;overflow:hidden;
+}
+#header-progress-fill{height:100%;background:var(--amber);width:0%;transition:width .3s;}
+
+/* ---------- Body layout ---------- */
+#body-wrap{
+  flex:1 1 auto;
+  display:flex;
+  min-height:0;
+  position:relative;
+}
+
+/* ---------- Sidebar ---------- */
+#sidebar{
+  width:var(--sidebar-w);
+  flex:0 0 var(--sidebar-w);
+  background:var(--white);
+  border-right:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  transition:margin-left .25s ease, box-shadow .25s ease;
+  z-index:15;
+}
+#body-wrap.sidebar-hidden #sidebar{margin-left:calc(-1 * var(--sidebar-w));}
+#sidebar-inner{
+  flex:1 1 auto;
+  overflow-y:auto;
+  padding:14px;
+}
+.legend{
+  display:flex;flex-wrap:wrap;gap:6px 10px;
+  font-size:10.5px;color:var(--ink-soft);
+  margin-bottom:12px;padding-bottom:12px;
+  border-bottom:1px dashed var(--line);
+}
+.legend span{display:flex;align-items:center;gap:4px;}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block;}
+.sec-title{
+  font-size:11px;font-weight:700;color:var(--slate);
+  text-transform:uppercase;letter-spacing:.6px;
+  margin:14px 0 6px;
+}
+.sec-title:first-child{margin-top:0;}
+#navgrid-group{display:flex;flex-direction:column;gap:2px;}
+.nav-section{margin-bottom:4px;}
+.nav-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:6px;
+}
+.nav-btn{
+  aspect-ratio:1/1;
+  border-radius:7px;
+  border:1.5px solid var(--line);
+  background:var(--paper);
+  color:var(--ink);
+  font-size:12.5px;
+  font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  transition:.15s;
+}
+.nav-btn.answered{background:#dfeadd;border-color:#a9cba3;color:#2f5c3a;}
+.nav-btn.current{
+  border-color:var(--amber);
+  box-shadow:0 0 0 2px rgba(232,163,61,.35);
+  background:var(--navy);
+  color:var(--white);
+}
+.nav-btn:active{transform:scale(.93);}
+
+/* ---------- Backdrop for mobile sidebar ---------- */
+#backdrop{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(20,25,35,.4);
+  z-index:14;
+}
+#body-wrap.mobile-open #backdrop{display:block;}
+
+/* ---------- Main panel ---------- */
+#main{
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+#main-scroll{
+  flex:1 1 auto;
+  overflow-y:auto;
+  padding:22px clamp(16px,4vw,48px) 100px;
+}
+.card{
+  max-width:820px;
+  margin:0 auto;
+  background:var(--white);
+  border-radius:14px;
+  border:1px solid var(--line);
+  box-shadow:0 1px 3px rgba(30,58,95,.06);
+  padding:24px clamp(16px,3vw,36px);
+}
+.q-meta{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.q-badge{
+  font-size:11px;font-weight:700;letter-spacing:.4px;
+  padding:4px 10px;border-radius:20px;
+  background:var(--navy);color:var(--white);
+}
+.q-badge.MCMA{background:var(--slate);}
+.q-badge.MATCH{background:#6b5b95;}
+.q-badge.ISIAN{background:#3d7068;}
+.q-badge.ESSAY{background:var(--amber-dark);}
+.q-num{font-size:13px;color:var(--ink-soft);font-weight:600;}
+.q-level{
+  margin-left:auto;font-size:11px;color:var(--ink-soft);
+  background:var(--paper);border:1px solid var(--line);
+  padding:3px 8px;border-radius:6px;
+}
+.q-stimulus{
+  background:var(--paper);border:1px solid var(--line);
+  border-left:4px solid var(--slate);
+  border-radius:8px;padding:12px 14px;margin-bottom:14px;
+  font-size:14.5px;line-height:1.7;color:var(--ink);
+}
+.q-stimulus table{border-collapse:collapse;margin-top:8px;width:100%;}
+.q-stimulus table td,.q-stimulus table th{
+  border:1px solid var(--line);padding:5px 9px;font-size:13.5px;text-align:center;
+}
+.q-stimulus table th{background:#e4e0d3;}
+.q-text{
+  font-size:16.5px;line-height:1.85;margin-bottom:20px;color:var(--ink);
+}
+.q-text p{margin:0 0 10px;}
+
+/* fraction rendering */
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 2px;line-height:1;position:relative;top:2px;}
+.frac .num{padding:0 3px 2px;border-bottom:1.4px solid currentColor;}
+.frac .den{padding:2px 3px 0;}
+.eq-block{display:block;text-align:center;margin:10px 0;font-size:1.05em;}
+.mathtext{font-style:italic;}
+
+/* options: MCQ / MCMA */
+.opt-list{display:flex;flex-direction:column;gap:9px;}
+.opt{
+  display:flex;align-items:flex-start;gap:11px;
+  border:1.5px solid var(--line);border-radius:10px;
+  padding:12px 14px;
+  background:var(--paper);
+  transition:.15s;
+}
+.opt:not(.locked):active{background:var(--paper-2);}
+.opt.selected{border-color:var(--navy);background:#eaf0f8;}
+.opt input{margin-top:3px;flex:0 0 auto;width:18px;height:18px;accent-color:var(--navy);}
+.opt-label{font-weight:700;color:var(--slate);flex:0 0 auto;width:18px;}
+.opt-text{flex:1 1 auto;font-size:15px;line-height:1.6;}
+.opt-icon{flex:0 0 auto;font-size:15px;font-weight:700;}
+
+/* Match */
+.match-wrap{display:flex;flex-direction:column;gap:12px;}
+.match-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  border:1.5px solid var(--line);border-radius:10px;padding:12px;background:var(--paper);
+}
+.match-left{font-weight:600;font-size:15px;flex:1 1 160px;min-width:120px;}
+.match-select{
+  flex:1 1 160px;min-width:140px;
+  padding:9px 10px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--white);font-size:14.5px;color:var(--ink);
+}
+.match-icon{flex:0 0 auto;font-weight:700;}
+
+/* Isian */
+.isian-input{
+  width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
+  font-size:16px;background:var(--paper);color:var(--ink);
+}
+.isian-input:focus{outline:none;border-color:var(--navy);background:var(--white);}
+.isian-hint{font-size:11.5px;color:var(--ink-soft);margin-top:6px;}
+
+/* Essay */
+.essay-input{
+  width:100%;min-height:130px;padding:12px 14px;border-radius:10px;
+  border:1.5px solid var(--line);font-size:15.5px;line-height:1.6;
+  background:var(--paper);color:var(--ink);resize:vertical;
+}
+.essay-input:focus{outline:none;border-color:var(--navy);background:var(--white);}
+
+/* Locked state */
+.locked{pointer-events:none;opacity:.92;}
+
+/* Action row */
+.q-actions{
+  display:flex;gap:10px;flex-wrap:wrap;
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+}
+.btn{
+  border:none;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:700;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.btn-primary{background:var(--navy);color:var(--white);}
+.btn-primary:active{background:var(--navy-dark);}
+.btn-primary:disabled{background:#b9c2cd;color:#eef1f4;}
+.btn-ghost{background:var(--white);color:var(--navy);border:1.5px solid var(--navy);}
+.btn-amber{background:var(--amber);color:var(--navy-dark);}
+.btn-amber:active{background:var(--amber-dark);}
+.btn:disabled{cursor:not-allowed;}
+
+/* Feedback / pembahasan */
+.feedback{
+  margin-top:16px;border-radius:10px;padding:14px 16px;font-size:14.5px;line-height:1.75;
+}
+.feedback.ok{background:var(--ok-bg);border:1.5px solid #b6dcc2;color:#204a30;}
+.feedback.bad{background:var(--bad-bg);border:1.5px solid #eec3ba;color:#7a2e20;}
+.feedback.neutral{background:#eef2f6;border:1.5px solid #c9d6e3;color:var(--navy-dark);}
+.feedback-title{font-weight:700;font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.feedback .kunci{font-weight:700;}
+.pembahasan{margin-top:10px;padding-top:10px;border-top:1px dashed rgba(0,0,0,.15);}
+.pembahasan-step{margin-bottom:7px;}
+.pembahasan-step b{color:var(--slate);}
+.rubrik-box{
+  margin-top:10px;background:var(--white);border:1px dashed var(--line);
+  border-radius:8px;padding:10px 12px;font-size:13.5px;color:var(--ink-soft);
+}
+
+/* Footer nav bar (prev/next) */
+#footer-nav{
+  flex:0 0 auto;
+  display:flex;gap:10px;align-items:center;
+  padding:12px clamp(16px,4vw,48px);
+  background:var(--white);
+  border-top:1px solid var(--line);
+}
+#footer-nav .spacer{flex:1 1 auto;}
+#btn-finish{background:var(--ok);color:var(--white);}
+
+/* ---------- Result modal ---------- */
+#result-overlay{
+  position:fixed;inset:0;background:rgba(20,25,35,.55);
+  display:none;align-items:center;justify-content:center;z-index:50;padding:16px;
+}
+#result-overlay.show{display:flex;}
+#result-modal{
+  background:var(--white);border-radius:16px;max-width:640px;width:100%;
+  max-height:88vh;overflow-y:auto;padding:26px clamp(18px,4vw,34px);
+}
+#result-modal h2{margin:0 0 4px;font-size:20px;color:var(--navy);}
+#result-modal .sub{color:var(--ink-soft);font-size:13px;margin-bottom:18px;}
+.score-hero{
+  display:flex;align-items:center;gap:18px;
+  background:linear-gradient(135deg,var(--navy),var(--slate));
+  color:var(--white);border-radius:12px;padding:18px 20px;margin-bottom:18px;
+}
+.score-hero .num{font-size:42px;font-weight:800;color:var(--amber);line-height:1;}
+.score-hero .lbl{font-size:12.5px;color:#dbe4ee;line-height:1.5;}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.result-item{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--paper);}
+.result-item .n{font-size:18px;font-weight:800;color:var(--navy);}
+.result-item .l{font-size:11.5px;color:var(--ink-soft);}
+.result-note{
+  background:#fff6e8;border:1px solid #f0dcae;border-radius:9px;
+  padding:11px 13px;font-size:12.5px;color:#7a5a12;line-height:1.6;margin-bottom:14px;
+}
+.result-actions{display:flex;gap:10px;flex-wrap:wrap;}
+#level-breakdown{margin-bottom:14px;}
+.level-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12.5px;}
+.level-row .lname{flex:0 0 128px;color:var(--ink-soft);}
+.level-bar-bg{flex:1 1 auto;height:8px;border-radius:5px;background:var(--paper-2);overflow:hidden;}
+.level-bar-fill{height:100%;background:var(--slate);}
+.level-row .lval{flex:0 0 44px;text-align:right;font-weight:700;color:var(--navy);}
+
+/* ---------- Start screen (nama siswa) ---------- */
+#start-overlay{
+  position:fixed;inset:0;z-index:70;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  overflow-y:auto;
+}
+#start-overlay.hidden{display:none;}
+#loading-overlay{
+  position:fixed;inset:0;z-index:80;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+#loading-overlay.hidden{display:none;}
+.start-card{
+  background:var(--white);border-radius:16px;max-width:420px;width:100%;
+  padding:30px clamp(20px,5vw,36px);text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.3);
+  margin:auto;
+}
+.start-card.wide{max-width:540px;text-align:left;}
+.start-card .eyebrow{
+  font-size:12px;color:var(--slate);font-weight:700;margin-bottom:6px;
+}
+.start-card h2{margin:0 0 6px;font-size:19px;color:var(--navy);}
+.start-card .sub{font-size:13px;color:var(--ink-soft);margin-bottom:22px;line-height:1.6;}
+.start-card.wide .eyebrow,.start-card.wide h2,.start-card.wide .sub{text-align:center;}
+.start-card.hidden{display:none;}
+
+/* Info step (keterangan soal) */
+.info-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;
+  margin-bottom:18px;
+}
+.info-item{
+  background:var(--paper);border:1px solid var(--line);border-radius:9px;
+  padding:9px 12px;
+}
+.info-item .k{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;}
+.info-item .v{font-size:13.5px;font-weight:700;color:var(--navy);}
+.info-item.full{grid-column:1/-1;}
+.dist-list{list-style:none;margin:0;padding:0;}
+.dist-list li{font-size:13px;color:var(--ink);padding:3px 0;display:flex;justify-content:space-between;gap:10px;}
+.dist-list li b{color:var(--navy);}
+.instructions{
+  background:var(--ok-bg);border:1px solid #bfe0cb;border-left:4px solid var(--ok);
+  border-radius:8px;padding:12px 14px;margin-bottom:20px;
+}
+.instructions .sec-title{margin:0 0 8px;color:var(--ok);}
+.instructions ol{margin:0;padding-left:18px;}
+.instructions li{font-size:13px;line-height:1.7;color:var(--ink);}
+#start-step-nama.hidden,#start-step-info.hidden{display:none;}
+
+/* Pengiriman hasil ke server (Google Sheets) */
+.submit-status{
+  margin-top:14px;padding:10px 12px;border-radius:8px;font-size:12.5px;
+  display:flex;align-items:center;gap:8px;
+}
+.submit-status.sending{background:#eef2f7;color:var(--slate);}
+.submit-status.ok{background:var(--ok-bg);color:var(--ok);}
+.submit-status.fail{background:var(--bad-bg);color:var(--bad);}
+.submit-status .btn-retry{
+  margin-left:auto;border:1px solid currentColor;background:transparent;color:inherit;
+  font-size:11.5px;padding:4px 10px;border-radius:6px;font-weight:700;
+}
+.start-card label{
+  display:block;text-align:left;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;
+}
+#input-nama{
+  width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
+  font-size:16px;background:var(--paper);color:var(--ink);margin-bottom:6px;
+}
+#input-nama:focus{outline:none;border-color:var(--navy);background:var(--white);}
+.start-card .err{font-size:12px;color:var(--bad);text-align:left;min-height:16px;margin-bottom:10px;}
+#btn-mulai{width:100%;justify-content:center;padding:13px;font-size:15px;}
+#btn-mulai:disabled{background:#b9c2cd;color:#eef1f4;}
+.hdr-student{
+  font-size:11.5px;color:#c7d3e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* Confirm dialog (reset) */
+.confirm-overlay{
+  position:fixed;inset:0;background:rgba(20,25,35,.5);
+  display:none;align-items:center;justify-content:center;z-index:60;padding:16px;
+}
+.confirm-overlay.show{display:flex;}
+.confirm-box{background:var(--white);border-radius:14px;padding:20px;max-width:360px;width:100%;}
+.confirm-box p{font-size:14px;color:var(--ink);line-height:1.6;}
+.confirm-box .row{display:flex;gap:10px;margin-top:14px;}
+
+/* Empty/utility */
+.hidden{display:none !important;}
+
+/* ---------- Responsive ---------- */
+@media (max-width:860px){
+  :root{--sidebar-w:250px;}
+  #header-text p{display:none;}
+}
+@media (max-width:680px){
+  #sidebar{
+    position:fixed;top:var(--header-h);bottom:0;left:0;
+    box-shadow:6px 0 24px rgba(0,0,0,.18);
+  }
+  #body-wrap.sidebar-hidden #sidebar{margin-left:calc(-1 * var(--sidebar-w));}
+  .result-grid{grid-template-columns:1fr 1fr;}
+  .card{padding:18px 16px;}
+  #header-progress-bar{width:60px;}
+}
+@media (max-width:400px){
+  .nav-grid{grid-template-columns:repeat(5,1fr);}
+}
+
+/* Scrollbar polish */
+#sidebar-inner::-webkit-scrollbar,#main-scroll::-webkit-scrollbar,#result-modal::-webkit-scrollbar{width:8px;}
+#sidebar-inner::-webkit-scrollbar-thumb,#main-scroll::-webkit-scrollbar-thumb{background:#c9c2b0;border-radius:4px;}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="start-card wide">
+    <div class="eyebrow">MEMUAT SOAL</div>
+    <h2 id="loading-title">Menghubungkan ke server…</h2>
+    <div class="sub">Mohon tunggu sebentar. Soal diambil langsung dari server guru — kunci jawaban tidak pernah dikirim ke perangkatmu.</div>
+    <div id="loading-err" style="color:var(--bad);font-size:13px;margin-bottom:14px;"></div>
+    <button class="btn btn-primary hidden" id="btn-loading-retry" style="width:100%;justify-content:center;padding:13px;">Coba Lagi</button>
+  </div>
+</div>
+
+<div id="start-overlay" class="hidden">
+  <!-- Langkah 1: Halaman keterangan/informasi soal -->
+  <div id="start-card-info" class="start-card wide">
+    <div class="eyebrow">KETERANGAN ASESMEN</div>
+    <h2 id="info-title">Memuat…</h2>
+    <div class="sub" id="info-sub"></div>
+    <div class="info-grid" id="info-grid"></div>
+    <div class="instructions">
+      <div class="sec-title">Petunjuk Pengerjaan</div>
+      <ol>
+        <li>Kerjakan soal secara mandiri dan jujur, sesuai kemampuanmu sendiri.</li>
+        <li>Jawaban tersimpan otomatis di perangkat ini selama pengerjaan berlangsung.</li>
+        <li>Gunakan navigasi nomor soal di sidebar untuk berpindah antar soal kapan saja.</li>
+        <li>Tekan "Cek Jawaban" pada tiap soal untuk mengunci dan mengoreksi jawabanmu.</li>
+        <li>Soal Uraian dinilai manual oleh guru dan tidak masuk skor otomatis.</li>
+        <li>Setelah selesai, hasil pengerjaanmu akan dikirim ke guru untuk dipantau.</li>
+      </ol>
+    </div>
+    <button class="btn btn-primary" id="btn-info-lanjut" style="width:100%;justify-content:center;padding:13px;font-size:15px;">Lanjut, Isi Nama →</button>
+  </div>
+
+  <!-- Langkah 2: Isi nama siswa -->
+  <div id="start-card-nama" class="start-card hidden">
+    <div class="eyebrow">SEBELUM MULAI</div>
+    <h2 id="start-title">Asesmen Sumatif Tengah Semester</h2>
+    <div class="sub" id="start-sub">Isi nama lengkapmu terlebih dahulu sebelum mengerjakan soal.</div>
+    <label for="input-nama">Nama Siswa</label>
+    <input type="text" id="input-nama" placeholder="Tulis nama lengkapmu di sini" autocomplete="name">
+    <div class="err" id="start-err"></div>
+    <button class="btn btn-primary" id="btn-mulai" disabled>Mulai Mengerjakan</button>
+    <button class="btn" id="btn-info-kembali" style="width:100%;justify-content:center;margin-top:8px;background:transparent;color:var(--ink-soft);">← Kembali ke Keterangan Soal</button>
+  </div>
+</div>
+
+<div id="app">
+  <div id="header">
+    <button id="hamburger" title="Tampilkan/Sembunyikan navigasi soal">☰</button>
+    <div id="header-text">
+      <h1 id="hdr-title">Memuat…</h1>
+      <p id="hdr-sub"></p>
+      <p class="hdr-student" id="hdr-student"></p>
+    </div>
+    <div id="header-progress">
+      <div><b id="hdr-answered">0</b>/<span id="hdr-total">30</span> terjawab</div>
+      <div id="header-progress-bar"><div id="header-progress-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="body-wrap">
+    <div id="backdrop"></div>
+    <div id="sidebar">
+      <div id="sidebar-inner">
+        <div class="legend">
+          <span><i style="background:var(--paper);border:1.5px solid var(--line);"></i>Belum dijawab</span>
+          <span><i style="background:#dfeadd;border:1.5px solid #a9cba3;"></i>Terisi</span>
+          <span><i style="background:var(--ok-bg);border:1.5px solid var(--ok);"></i>Benar</span>
+          <span><i style="background:var(--bad-bg);border:1.5px solid var(--bad);"></i>Salah</span>
+        </div>
+        <div id="navgrid-group"></div>
+      </div>
+    </div>
+
+    <div id="main">
+      <div id="main-scroll">
+        <div class="card" id="question-card"></div>
+      </div>
+      <div id="footer-nav">
+        <button class="btn btn-ghost" id="btn-prev">← Sebelumnya</button>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="btn-next">Berikutnya →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="result-overlay">
+  <div id="result-modal"></div>
+</div>
+
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <p id="confirm-text"></p>
+    <div class="row">
+      <button class="btn btn-ghost" id="confirm-cancel" style="flex:1;">Batal</button>
+      <button class="btn btn-primary" id="confirm-ok" style="flex:1;background:var(--bad);">Ya, lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* =========================================================
+   LMS ASESMEN — ENGINE GENERIK
+   Soal & kunci jawaban TIDAK disimpan di file ini. Semua diambil
+   dari server (Apps Script) saat halaman dibuka, dan kunci jawaban
+   tidak pernah dikirim ke browser — koreksi dilakukan di server.
+   ========================================================= */
+(function(){
+"use strict";
+
+let RAW = [];   // diisi oleh loadSoalData() setelah fetch ke server
+let META = {};  // diisi oleh loadSoalData() setelah fetch ke server
+const STORAGE_KEY = "lms_asesmen_v2";
+
+/* =========================================================
+   KONEKSI SERVER (Apps Script) — SUMBER SOAL & DATABASE HASIL
+   File HTML ini TIDAK berisi soal maupun kunci jawaban sama sekali.
+   Keduanya diambil live dari Apps Script, supaya repo GitHub publik
+   tetap aman dari kebocoran kunci.
+   1. Buat Google Sheet baru.
+   2. Extensions > Apps Script, buat 2 file script:
+      - "Code.gs"      -> tempel isi Code.gs yang disertakan.
+      - "SoalData.gs"  -> tempel isi SoalData.gs (berisi soal & kunci,
+                          PRIVAT, hanya hidup di sini).
+   3. Deploy > New deployment > Web app > Execute as: Me,
+      Who has access: Anyone. Salin URL yang dihasilkan.
+   4. Tempel URL tersebut di bawah ini, ganti tanda kutip kosong.
+   ========================================================= */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyodRw84HhP-7XWhtQSjtIuOEyFkd5ETPPEFxArdlm6UHv0qYuUH2hyLNdlm8qfBRBL/exec"; // <-- TEMPEL URL WEB APP APPS SCRIPT DI SINI
+
+/* ---------- State ---------- */
+let state = {
+  studentName: "",
+  currentIndex: 0,
+  answers: {},      // nomor -> answer value (string / array / object for match)
+  submitted: false,   // true once hasil berhasil terkirim ke Google Sheets
+  serverResult: null  // hasil skor & analisis yang dikembalikan server setelah dikoreksi
+};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state = Object.assign(state, parsed);
+    }
+  }catch(e){ console.warn("Gagal memuat progres tersimpan:", e); }
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.warn("Gagal menyimpan progres:", e); }
+}
+
+/* ---------- LaTeX-ish renderer (offline, tailored to dataset) ---------- */
+function renderMath(str){
+  if(str===undefined || str===null) return "";
+  str = String(str);
+
+  // paragraphs by real newlines
+  const parts = str.split(/\n/);
+  return parts.map(line=>renderLine(line)).join("<br>");
+}
+
+function renderLine(line){
+  // Detect markdown-ish table lines "| a | b |"
+  let out = "";
+  let i = 0;
+  while(i < line.length){
+    if(line[i] === '$'){
+      // display math $$...$$
+      if(line[i+1] === '$'){
+        const end = line.indexOf('$$', i+2);
+        const inner = end===-1 ? line.slice(i+2) : line.slice(i+2, end);
+        out += '<span class="eq-block">' + renderTex(inner) + '</span>';
+        i = end===-1 ? line.length : end+2;
+      } else {
+        const end = line.indexOf('$', i+1);
+        const inner = end===-1 ? line.slice(i+1) : line.slice(i+1, end);
+        out += renderTex(inner);
+        i = end===-1 ? line.length : end+1;
+      }
+    } else {
+      out += escapeHtml(line[i]);
+      i++;
+    }
+  }
+  return out;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// Parse a balanced {...} group starting at index (which must point at '{')
+function readGroup(s, idx){
+  if(s[idx] !== '{') return {content:"", next:idx};
+  let depth = 0, j = idx;
+  for(; j<s.length; j++){
+    if(s[j] === '{') depth++;
+    else if(s[j] === '}'){ depth--; if(depth===0){ j++; break; } }
+  }
+  return {content: s.slice(idx+1, j-1), next: j};
+}
+
+function renderTex(tex){
+  let out = "";
+  let i = 0;
+  while(i < tex.length){
+    if(tex.startsWith('\\frac', i)){
+      let j = i + 5;
+      const g1 = readGroup(tex, j);
+      const g2 = readGroup(tex, g1.next);
+      out += '<span class="frac"><span class="num">'+renderTex(g1.content)+'</span><span class="den">'+renderTex(g2.content)+'</span></span>';
+      i = g2.next;
+    } else if(tex.startsWith('\\text', i)){
+      let j = i + 5;
+      const g1 = readGroup(tex, j);
+      out += '<span class="mathtext">'+renderTex(g1.content)+'</span>';
+      i = g1.next;
+    } else if(tex.startsWith('\\times', i)){ out += ' × '; i += 6; }
+    else if(tex.startsWith('\\div', i)){ out += ' ÷ '; i += 4; }
+    else if(tex.startsWith('\\rightarrow', i)){ out += ' → '; i += 11; }
+    else if(tex.startsWith('\\leftarrow', i)){ out += ' ← '; i += 10; }
+    else if(tex.startsWith('\\dots', i)){ out += ' _____ '; i += 5; }
+    else if(tex.startsWith('\\leq', i)){ out += ' ≤ '; i += 4; }
+    else if(tex.startsWith('\\geq', i)){ out += ' ≥ '; i += 4; }
+    else if(tex.startsWith('\\neq', i)){ out += ' ≠ '; i += 4; }
+    else if(tex.startsWith('{,}', i)){ out += ','; i += 3; }
+    else if(tex[i] === '^'){
+      if(tex[i+1] === '{'){
+        const g = readGroup(tex, i+1);
+        out += '<sup>'+renderTex(g.content)+'</sup>';
+        i = g.next;
+      } else if(tex[i+1] !== undefined){
+        out += '<sup>'+escapeHtml(tex[i+1])+'</sup>';
+        i += 2;
+      } else { i++; }
+    }
+    else if(tex.startsWith('\\,', i) || tex.startsWith('\\;', i)){ out += ' '; i += 2; }
+    else if(tex[i] === '\\' ){
+      // skip unknown control word
+      let j = i+1;
+      while(j<tex.length && /[a-zA-Z]/.test(tex[j])) j++;
+      if(j===i+1) j++; // escaped symbol like \% or \$
+      i = j;
+    } else if(tex[i] === '{' || tex[i] === '}'){
+      i++; // stray brace, ignore
+    } else {
+      out += escapeHtml(tex[i]);
+      i++;
+    }
+  }
+  return out;
+}
+
+// Render a stimulus block which may contain a markdown table + text
+function renderStimulus(str){
+  if(!str) return "";
+  const lines = str.split("\n");
+  let html = "";
+  let tableRows = [];
+  let inTable = false;
+  function flushTable(){
+    if(tableRows.length===0) return;
+    let rows = tableRows.filter(r => !/^\s*\|?\s*-{2,}/.test(r.replace(/\|/g,'|')));
+    // remove separator row (---|---)
+    rows = tableRows.filter(r => !/^[\s|:-]+$/.test(r));
+    html += "<table>";
+    rows.forEach((r,ri)=>{
+      const cells = r.split("|").map(c=>c.trim()).filter((c,ci,arr)=>!(ci===0 && c==="") && !(ci===arr.length-1 && c===""));
+      const tag = ri===0 ? "th" : "td";
+      html += "<tr>" + cells.map(c=>"<"+tag+">"+renderLine(c)+"</"+tag+">").join("") + "</tr>";
+    });
+    html += "</table>";
+    tableRows = [];
+  }
+  lines.forEach(line=>{
+    if(/^\s*\|/.test(line)){
+      inTable = true;
+      tableRows.push(line);
+    } else {
+      if(inTable){ flushTable(); inTable = false; }
+      if(line.trim()!=="") html += "<p>"+renderLine(line)+"</p>";
+    }
+  });
+  if(inTable) flushTable();
+  return html;
+}
+
+/* ---------- Normalizer for ISIAN auto-check ---------- */
+function normalizeAnswer(s){
+  if(s===undefined||s===null) return "";
+  let t = String(s);
+  t = t.replace(/\$/g,"");
+  t = t.replace(/\{,\}/g,",");
+  // convert \frac{a}{b} -> a/b (best effort, non-nested)
+  let changed = true, guard=0;
+  while(changed && guard<20){
+    changed = false; guard++;
+    t = t.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, (m,a,b)=>{ changed=true; return a+"/"+b; });
+  }
+  t = t.replace(/\\text\{([^{}]*)\}/g, "$1");
+  t = t.replace(/\\times/g,"x").replace(/\\div/g,":");
+  t = t.replace(/[\\{}]/g,"");
+  t = t.replace(/\s+/g,"");
+  t = t.toLowerCase();
+  t = t.replace(/,/g,".");
+  // also allow "a¾" style not handled; keep as-is
+  return t;
+}
+
+/* ---------- Grouping ---------- */
+const TYPE_LABEL = {MCQ:"Pilihan Ganda", MCMA:"PG Kompleks", MATCH:"Menjodohkan", ISIAN:"Isian Singkat", ESSAY:"Uraian"};
+const TYPE_ORDER = ["MCQ","MCMA","MATCH","ISIAN","ESSAY"];
+let groups = {};
+const AUTO_TYPES = ["MCQ","MCMA","MATCH","ISIAN"];
+
+/* ---------- DOM refs ---------- */
+const $ = sel => document.querySelector(sel);
+const bodyWrap = $("#body-wrap");
+const hamburger = $("#hamburger");
+const navGroup = $("#navgrid-group");
+const questionCard = $("#question-card");
+const hdrAnswered = $("#hdr-answered");
+const hdrTotal = $("#hdr-total");
+const progressFill = $("#header-progress-fill");
+const btnPrev = $("#btn-prev");
+const btnNext = $("#btn-next");
+
+/* ---------- Ambil soal & meta dari server (TANPA kunci jawaban) ----------
+   File ini tidak pernah memuat kunci jawaban. Soal (versi aman utk siswa)
+   diambil live dari Apps Script setiap halaman dibuka. ---------- */
+function loadSoalData(){
+  $("#loading-title").textContent = "Menghubungkan ke server…";
+  $("#loading-err").textContent = "";
+  $("#btn-loading-retry").classList.add("hidden");
+  if(!GAS_URL){
+    $("#loading-title").textContent = "Belum terhubung ke server soal";
+    $("#loading-err").textContent = "URL Apps Script belum diisi di file ini (konstanta GAS_URL).";
+    $("#btn-loading-retry").classList.remove("hidden");
+    return;
+  }
+  fetch(GAS_URL + "?action=data")
+    .then(res=>res.json())
+    .then(data=>{
+      if(!data || data.status!=="ok" || !data.soal) throw new Error((data && data.message) || "Respons server tidak valid");
+      RAW = data.soal;
+      META = data.meta || {};
+      boot();
+    })
+    .catch(err=>{
+      $("#loading-title").textContent = "Gagal memuat soal";
+      $("#loading-err").textContent = "Periksa koneksi internet, lalu coba lagi. (" + err.message + ")";
+      $("#btn-loading-retry").classList.remove("hidden");
+    });
+}
+const btnLoadingRetry = $("#btn-loading-retry");
+if(btnLoadingRetry) btnLoadingRetry.addEventListener("click", loadSoalData);
+
+/* ---------- Boot: dijalankan sekali setelah soal & meta berhasil diambil ---------- */
+function boot(){
+  $("#loading-overlay").classList.add("hidden");
+
+  groups = {};
+  TYPE_ORDER.forEach(t=>groups[t]=[]);
+  RAW.forEach(q=>{ if(!groups[q.tipe_soal]) groups[q.tipe_soal]=[]; groups[q.tipe_soal].push(q); });
+
+  $("#hdr-title").textContent = META.judul_asesmen + " — " + META.mata_pelajaran;
+  $("#hdr-sub").textContent = "Kelas " + META.kelas + " · " + META.kurikulum + " · TA " + META.tahun_ajaran;
+  hdrTotal.textContent = RAW.length;
+
+  $("#start-title").textContent = META.judul_asesmen;
+  $("#start-sub").textContent = META.mata_pelajaran + " · Kelas " + META.kelas + " · TA " + META.tahun_ajaran + " — Isi nama lengkapmu sebelum mulai mengerjakan.";
+
+  renderInfoScreen();
+  init();
+}
+
+/* ---------- Halaman Keterangan Soal (dinamis dari META, cocok utk soal.json apa pun) ---------- */
+function renderInfoScreen(){
+  $("#info-title").textContent = META.judul_asesmen || "Asesmen";
+  $("#info-sub").textContent = "Bacalah keterangan berikut sebelum memulai pengerjaan.";
+
+  const fields = [
+    ["Mata Pelajaran", META.mata_pelajaran],
+    ["Kelas", META.kelas],
+    ["Kurikulum", META.kurikulum],
+    ["Fase", META.fase],
+    ["Tahun Ajaran", META.tahun_ajaran],
+    ["Total Soal", (META.total_soal!==undefined ? META.total_soal : RAW.length) + " Soal"]
+  ];
+  let html = "";
+  fields.forEach(([k,v])=>{
+    if(v===undefined || v===null || v==="") return;
+    html += `<div class="info-item"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(String(v))}</div></div>`;
+  });
+
+  if(META.distribusi_bentuk_soal && typeof META.distribusi_bentuk_soal==="object"){
+    let distHtml = "<ul class='dist-list'>";
+    Object.entries(META.distribusi_bentuk_soal).forEach(([label, ket])=>{
+      const niceLabel = label.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+      distHtml += `<li><span>${escapeHtml(niceLabel)}</span><b>${escapeHtml(String(ket))}</b></li>`;
+    });
+    distHtml += "</ul>";
+    html += `<div class="info-item full"><div class="k">Distribusi Bentuk Soal</div><div class="v" style="font-weight:400;">${distHtml}</div></div>`;
+  }
+  if(META.acuan_kisi_kisi){
+    html += `<div class="info-item full"><div class="k">Acuan Kisi-Kisi</div><div class="v" style="font-weight:600;font-size:12.5px;">${escapeHtml(META.acuan_kisi_kisi)}</div></div>`;
+  }
+  $("#info-grid").innerHTML = html;
+}
+loadSoalData();
+
+/* ---------- Sidebar navigation build ---------- */
+function buildNav(){
+  navGroup.innerHTML = "";
+  TYPE_ORDER.forEach(type=>{
+    const list = groups[type];
+    if(list.length===0) return;
+    const wrap = document.createElement("div");
+    wrap.className = "nav-section";
+    const title = document.createElement("div");
+    title.className = "sec-title";
+    title.textContent = TYPE_LABEL[type] + " (" + list[0].nomor + "–" + list[list.length-1].nomor + ")";
+    wrap.appendChild(title);
+    const grid = document.createElement("div");
+    grid.className = "nav-grid";
+    list.forEach(q=>{
+      const b = document.createElement("button");
+      b.className = "nav-btn";
+      b.textContent = q.nomor;
+      b.dataset.nomor = q.nomor;
+      b.addEventListener("click", ()=>{ goToNomor(q.nomor); closeMobileSidebar(); });
+      grid.appendChild(b);
+    });
+    wrap.appendChild(grid);
+    navGroup.appendChild(wrap);
+  });
+  refreshNavStates();
+}
+
+function refreshNavStates(){
+  document.querySelectorAll(".nav-btn").forEach(btn=>{
+    const nomor = btn.dataset.nomor;
+    btn.classList.remove("answered","current");
+    if(hasAnswer(nomor)) btn.classList.add("answered");
+    if(Number(nomor)===currentQ().nomor) btn.classList.add("current");
+  });
+  const answeredCount = RAW.filter(q=>hasAnswer(q.nomor)).length;
+  hdrAnswered.textContent = answeredCount;
+  progressFill.style.width = Math.round(answeredCount/RAW.length*100)+"%";
+}
+
+function hasAnswer(nomor){
+  const a = state.answers[nomor];
+  if(a===undefined||a===null) return false;
+  if(Array.isArray(a)) return a.length>0;
+  if(typeof a === "object") return Object.keys(a).some(k=>a[k]!==undefined && a[k]!=="");
+  return String(a).trim()!=="";
+}
+
+/* ---------- Sidebar toggle ---------- */
+let sidebarHiddenDesktop = false;
+function isMobile(){ return window.innerWidth <= 680; }
+hamburger.addEventListener("click", ()=>{
+  if(isMobile()){
+    const willOpen = !bodyWrap.classList.contains("mobile-open");
+    bodyWrap.classList.toggle("mobile-open", willOpen);
+    bodyWrap.classList.toggle("sidebar-hidden", !willOpen);
+  } else {
+    sidebarHiddenDesktop = !sidebarHiddenDesktop;
+    bodyWrap.classList.toggle("sidebar-hidden", sidebarHiddenDesktop);
+  }
+});
+$("#backdrop").addEventListener("click", closeMobileSidebar);
+function closeMobileSidebar(){
+  bodyWrap.classList.remove("mobile-open");
+  if(isMobile()) bodyWrap.classList.add("sidebar-hidden");
+}
+
+/* ---------- Navigation ---------- */
+function currentQ(){ return RAW[state.currentIndex]; }
+function goToNomor(nomor){
+  const idx = RAW.findIndex(q=>q.nomor===nomor);
+  if(idx>=0){ state.currentIndex = idx; saveState(); renderQuestion(); }
+}
+function goToIndex(idx){
+  if(idx<0) idx=0;
+  if(idx>=RAW.length) idx=RAW.length-1;
+  state.currentIndex = idx;
+  saveState();
+  renderQuestion();
+}
+btnPrev.addEventListener("click", ()=>goToIndex(state.currentIndex-1));
+btnNext.addEventListener("click", ()=>{
+  if(state.currentIndex >= RAW.length-1){ openResult(); }
+  else goToIndex(state.currentIndex+1);
+});
+
+/* ---------- Rendering current question ---------- */
+function renderQuestion(){
+  const q = currentQ();
+  const nomor = q.nomor;
+
+  let html = "";
+  html += `<div class="q-meta">
+    <span class="q-badge ${q.tipe_soal}">${TYPE_LABEL[q.tipe_soal]}</span>
+    <span class="q-num">Nomor ${q.nomor} dari ${RAW.length}</span>
+    <span class="q-level">${escapeHtml(q.level_kognitif||"")}</span>
+  </div>`;
+
+  if(q.stimulus_bentuk_panjang) html += `<div class="q-stimulus">${renderStimulus(q.stimulus_bentuk_panjang)}</div>`;
+  if(q.stimulus_tabel) html += `<div class="q-stimulus">${renderStimulus(q.stimulus_tabel)}</div>`;
+
+  if(q.pertanyaan) html += `<div class="q-text">${renderStimulus(q.pertanyaan)}</div>`;
+  if(q.instruksi) html += `<div class="q-text" style="font-style:italic;color:var(--ink-soft);font-size:14px;">${renderMath(q.instruksi)}</div>`;
+
+  html += buildAnswerArea(q);
+  html += `<p class="isian-hint" style="margin-top:14px;">Jawabanmu tersimpan otomatis. Koreksi &amp; skor akan muncul setelah kamu menekan "Kumpulkan Jawaban" di soal terakhir.</p>`;
+
+  questionCard.innerHTML = html;
+  attachAnswerHandlers(q);
+
+  btnPrev.disabled = state.currentIndex===0;
+  btnNext.textContent = state.currentIndex===RAW.length-1 ? "Kumpulkan Jawaban" : "Berikutnya →";
+
+  refreshNavStates();
+  document.getElementById("main-scroll").scrollTop = 0;
+}
+
+function buildAnswerArea(q){
+  const nomor = q.nomor;
+  if(q.tipe_soal==="MCQ"){
+    const sel = state.answers[nomor];
+    let rows = "";
+    Object.keys(q.pilihan_jawaban).forEach(k=>{
+      const cls = "opt" + (sel===k ? " selected" : "");
+      rows += `<label class="${cls}" data-key="${k}">
+        <input type="radio" name="mcq-${nomor}" value="${k}" ${sel===k?"checked":""}>
+        <span class="opt-label">${k}</span>
+        <span class="opt-text">${renderMath(q.pilihan_jawaban[k])}</span>
+      </label>`;
+    });
+    return `<div class="opt-list">${rows}</div>`;
+  }
+
+  if(q.tipe_soal==="MCMA"){
+    const sel = Array.isArray(state.answers[nomor]) ? state.answers[nomor] : [];
+    let rows = "";
+    Object.keys(q.pilihan_jawaban).forEach(k=>{
+      const cls = "opt" + (sel.includes(k) ? " selected" : "");
+      rows += `<label class="${cls}" data-key="${k}">
+        <input type="checkbox" name="mcma-${nomor}" value="${k}" ${sel.includes(k)?"checked":""}>
+        <span class="opt-label">${k}</span>
+        <span class="opt-text">${renderMath(q.pilihan_jawaban[k])}</span>
+      </label>`;
+    });
+    return `<div class="opt-list">${rows}</div><p class="isian-hint">Boleh memilih lebih dari satu jawaban.</p>`;
+  }
+
+  if(q.tipe_soal==="MATCH"){
+    const sel = (typeof state.answers[nomor]==="object" && state.answers[nomor]) ? state.answers[nomor] : {};
+    const options = q.opsi_jawaban || [];
+    let rows = "";
+    (q.pasangan_soal||[]).forEach(p=>{
+      const chosen = sel[p.id_pernyataan] || "";
+      let opts = `<option value="">— pilih —</option>`;
+      options.forEach(o=>{
+        opts += `<option value="${o.id}" ${chosen===o.id?"selected":""}>${stripMathToPlain(o.teks)}</option>`;
+      });
+      rows += `<div class="match-row">
+        <div class="match-left">${renderMath(p.pernyataan)}</div>
+        <select class="match-select" data-pernyataan="${p.id_pernyataan}">${opts}</select>
+      </div>`;
+    });
+    return `<div class="match-wrap">${rows}</div>`;
+  }
+
+  if(q.tipe_soal==="ISIAN"){
+    const val = state.answers[nomor] || "";
+    return `<input type="text" class="isian-input" id="isian-${nomor}" value="${escapeAttr(val)}" placeholder="Ketik jawabanmu di sini…">
+    <p class="isian-hint">Tulis pecahan dengan format a/b (contoh: 3/4) dan desimal dengan koma (contoh: 0,75).</p>`;
+  }
+
+  if(q.tipe_soal==="ESSAY"){
+    const val = state.answers[nomor] || "";
+    return `<textarea class="essay-input" id="essay-${nomor}" placeholder="Tulis jawaban dan langkah pengerjaanmu di sini…">${escapeHtml(val)}</textarea>`;
+  }
+  return "";
+}
+
+function stripMathToPlain(t){
+  // used inside <option> where HTML tags won't render — produce plain text
+  const div = document.createElement("div");
+  div.innerHTML = renderMath(t);
+  return div.textContent;
+}
+function escapeAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
+
+/* ---------- Answer capture handlers ----------
+   Tidak ada lagi koreksi instan di sini — kunci jawaban TIDAK PERNAH
+   dikirim ke browser siswa. Semua koreksi & skor dihitung di server
+   (Apps Script) saat siswa menekan "Kumpulkan Jawaban". ---------- */
+function attachAnswerHandlers(q){
+  const nomor = q.nomor;
+  if(q.tipe_soal==="MCQ"){
+    document.querySelectorAll(`input[name="mcq-${nomor}"]`).forEach(inp=>{
+      inp.addEventListener("change", e=>{
+        state.answers[nomor] = e.target.value;
+        saveState();
+        renderQuestion();
+      });
+    });
+  } else if(q.tipe_soal==="MCMA"){
+    document.querySelectorAll(`input[name="mcma-${nomor}"]`).forEach(inp=>{
+      inp.addEventListener("change", ()=>{
+        const checked = Array.from(document.querySelectorAll(`input[name="mcma-${nomor}"]:checked`)).map(i=>i.value);
+        state.answers[nomor] = checked;
+        saveState();
+        renderQuestion();
+      });
+    });
+  } else if(q.tipe_soal==="MATCH"){
+    document.querySelectorAll(`.match-select`).forEach(sel=>{
+      sel.addEventListener("change", e=>{
+        const cur = (typeof state.answers[nomor]==="object" && state.answers[nomor]) ? state.answers[nomor] : {};
+        cur[e.target.dataset.pernyataan] = e.target.value;
+        state.answers[nomor] = cur;
+        saveState();
+        refreshNavStates();
+      });
+    });
+  } else if(q.tipe_soal==="ISIAN"){
+    const inp = document.getElementById(`isian-${nomor}`);
+    if(inp) inp.addEventListener("input", e=>{
+      state.answers[nomor] = e.target.value;
+      saveState();
+      refreshNavStates();
+    });
+  } else if(q.tipe_soal==="ESSAY"){
+    const ta = document.getElementById(`essay-${nomor}`);
+    if(ta) ta.addEventListener("input", e=>{
+      state.answers[nomor] = e.target.value;
+      saveState();
+      refreshNavStates();
+    });
+  }
+}
+
+/* ---------- Scoring & Result ---------- */
+function openResult(){
+  const unanswered = RAW.filter(q=>!hasAnswer(q.nomor)).map(q=>q.nomor);
+  let modal = `
+    <h2>Mengirim &amp; Mengoreksi Jawaban…</h2>
+    <div class="sub"><b>${escapeHtml(state.studentName||"-")}</b> · ${META.judul_asesmen} · ${META.mata_pelajaran} Kelas ${META.kelas}</div>
+    ${unanswered.length ? `<div class="result-note">📝 Soal belum dijawab: ${unanswered.join(", ")}.</div>` : ""}
+    <div id="submit-status"></div>
+  `;
+  $("#result-modal").innerHTML = modal;
+  $("#result-overlay").classList.add("show");
+  kirimHasilKeServer();
+}
+
+function renderHasilFromServer(data){
+  let typeHtml = "";
+  Object.keys(data.per_tipe||{}).forEach(t=>{
+    const d = data.per_tipe[t];
+    if(!d || d.max===0) return;
+    typeHtml += `<div class="result-item"><div class="n">${d.earned}/${d.max}</div><div class="l">${TYPE_LABEL[t]||t}</div></div>`;
+  });
+
+  let levelHtml = "";
+  Object.keys(data.per_level_kognitif||{}).sort().forEach(lvl=>{
+    const d = data.per_level_kognitif[lvl];
+    const p = d.max>0 ? Math.round(d.earned/d.max*100) : 0;
+    levelHtml += `<div class="level-row">
+      <div class="lname">${escapeHtml(lvl)}</div>
+      <div class="level-bar-bg"><div class="level-bar-fill" style="width:${p}%;"></div></div>
+      <div class="lval">${p}%</div>
+    </div>`;
+  });
+
+  const unanswered = RAW.filter(q=>!hasAnswer(q.nomor)).map(q=>q.nomor);
+  const essayCount = RAW.filter(q=>q.tipe_soal==="ESSAY").length;
+
+  let modal = `
+    <h2>Hasil Pengerjaan</h2>
+    <div class="sub"><b>${escapeHtml(state.studentName||"-")}</b> · ${META.judul_asesmen} · ${META.mata_pelajaran} Kelas ${META.kelas}</div>
+    <div class="score-hero">
+      <div class="num">${data.skor}</div>
+      <div class="lbl">Skor otomatis dari soal Pilihan Ganda, PG Kompleks,<br>Menjodohkan &amp; Isian (${data.poin_diperoleh} dari ${data.poin_maksimal} poin)</div>
+    </div>
+    <div class="result-grid">${typeHtml}</div>
+    <div class="sec-title" style="margin-top:0;">Analisis Penguasaan per Level Kognitif</div>
+    <div id="level-breakdown">${levelHtml || '<p style="font-size:12.5px;color:var(--ink-soft);">Belum ada data.</p>'}</div>
+    <div class="result-note">
+      📌 ${essayCount} soal Uraian <b>dinilai manual oleh guru</b> dan tidak termasuk skor otomatis di atas. Kunci jawaban tidak ditampilkan di sini — koreksi lengkap ada pada guru.
+      ${unanswered.length ? `<br>📝 Soal belum dijawab: ${unanswered.join(", ")}.` : ""}
+    </div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" id="btn-close-result">Tutup</button>
+      <button class="btn btn-primary" id="btn-reset" style="background:var(--bad);">Ulangi dari Awal</button>
+    </div>
+  `;
+  $("#result-modal").innerHTML = modal;
+  $("#btn-close-result").addEventListener("click", ()=>$("#result-overlay").classList.remove("show"));
+  $("#btn-reset").addEventListener("click", ()=>{ askConfirmReset(); });
+}
+
+/* ---------- Kirim jawaban mentah ke server untuk DIKOREKSI DI SANA ----------
+   Tidak ada kunci jawaban di file ini. Server (Apps Script) yang menyimpan
+   kunci secara privat, mengoreksi, mencatat ke Google Sheets, lalu mengirim
+   balik hanya skor & analisisnya. ---------- */
+function renderSubmitStatus(kind, text, showRetry){
+  const el = $("#submit-status");
+  if(!el) return;
+  el.className = "submit-status " + kind;
+  el.innerHTML = escapeHtml(text) + (showRetry ? '<button class="btn-retry" id="btn-retry-kirim">Kirim Ulang</button>' : "");
+  if(showRetry){
+    const btn = $("#btn-retry-kirim");
+    if(btn) btn.addEventListener("click", kirimHasilKeServer);
+  }
+}
+
+function buildJawabanPayload(){
+  return {
+    timestamp: new Date().toISOString(),
+    nama: state.studentName || "-",
+    judul_asesmen: META.judul_asesmen,
+    mata_pelajaran: META.mata_pelajaran,
+    kelas: META.kelas,
+    tahun_ajaran: META.tahun_ajaran,
+    jawaban: state.answers
+  };
+}
+
+function kirimHasilKeServer(){
+  if(state.submitted && state.serverResult){
+    renderHasilFromServer(state.serverResult);
+    return;
+  }
+  if(!GAS_URL){
+    renderSubmitStatus("fail", "Belum terhubung ke server koreksi (URL Apps Script belum diisi).");
+    return;
+  }
+  renderSubmitStatus("sending", "Mengirim & mengoreksi jawaban…");
+  const payload = buildJawabanPayload();
+  fetch(GAS_URL, {
+    method: "POST",
+    headers: {"Content-Type": "text/plain;charset=utf-8"},
+    body: JSON.stringify(payload)
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    if(data && data.status === "ok"){
+      state.submitted = true;
+      state.serverResult = data;
+      saveState();
+      renderHasilFromServer(data);
+    } else {
+      renderSubmitStatus("fail", "Gagal dikoreksi server: " + ((data && data.message) || "tidak diketahui") + ".", true);
+    }
+  })
+  .catch(()=>{
+    renderSubmitStatus("fail", "Tidak ada koneksi internet. Jawabanmu aman tersimpan di perangkat ini — coba kirim ulang.", true);
+  });
+}
+
+
+/* ---------- Reset confirm ---------- */
+function askConfirmReset(){
+  $("#confirm-text").textContent = "Semua jawaban dan progres akan dihapus dan tidak dapat dikembalikan. Yakin ingin mengulang dari awal?";
+  $("#confirm-overlay").classList.add("show");
+}
+$("#confirm-cancel").addEventListener("click", ()=>$("#confirm-overlay").classList.remove("show"));
+$("#confirm-ok").addEventListener("click", ()=>{
+  localStorage.removeItem(STORAGE_KEY);
+  state = {studentName:"", currentIndex:0, answers:{}, submitted:false, serverResult:null};
+  $("#confirm-overlay").classList.remove("show");
+  $("#result-overlay").classList.remove("show");
+  showStartScreen();
+});
+
+/* ---------- Start screen (keterangan soal -> nama siswa) ---------- */
+const startOverlay = $("#start-overlay");
+const startCardInfo = $("#start-card-info");
+const startCardNama = $("#start-card-nama");
+const inputNama = $("#input-nama");
+const btnMulai = $("#btn-mulai");
+const startErr = $("#start-err");
+
+function showStartScreen(){
+  inputNama.value = "";
+  btnMulai.disabled = true;
+  startErr.textContent = "";
+  startOverlay.classList.remove("hidden");
+  startCardInfo.classList.remove("hidden");
+  startCardNama.classList.add("hidden");
+}
+function hideStartScreen(){ startOverlay.classList.add("hidden"); }
+
+$("#btn-info-lanjut").addEventListener("click", ()=>{
+  startCardInfo.classList.add("hidden");
+  startCardNama.classList.remove("hidden");
+  setTimeout(()=>inputNama.focus(), 50);
+});
+$("#btn-info-kembali").addEventListener("click", ()=>{
+  startCardNama.classList.add("hidden");
+  startCardInfo.classList.remove("hidden");
+});
+
+function updateStudentHeader(){
+  $("#hdr-student").textContent = state.studentName ? ("Nama: " + state.studentName) : "";
+}
+
+inputNama.addEventListener("input", ()=>{
+  btnMulai.disabled = inputNama.value.trim().length < 3;
+  startErr.textContent = "";
+});
+inputNama.addEventListener("keydown", e=>{
+  if(e.key==="Enter" && !btnMulai.disabled) btnMulai.click();
+});
+btnMulai.addEventListener("click", ()=>{
+  const v = inputNama.value.trim();
+  if(v.length < 3){ startErr.textContent = "Nama minimal 3 huruf ya."; return; }
+  state.studentName = v;
+  saveState();
+  hideStartScreen();
+  startApp();
+});
+
+function startApp(){
+  updateStudentHeader();
+  buildNav();
+  renderQuestion();
+  if(isMobile()) bodyWrap.classList.add("sidebar-hidden");
+}
+
+/* ---------- Init ---------- */
+function init(){
+  loadState();
+  if(state.currentIndex>=RAW.length) state.currentIndex = 0;
+  if(state.studentName && state.studentName.trim().length>0){
+    hideStartScreen();
+    startApp();
+  } else {
+    showStartScreen();
+  }
+}
+
+})();
+</script>
+</body>
+</html>
