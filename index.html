@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TPS UTBK — Bimbingan Belajar H2 Solution</title>
+<style>
+:root{
+  --navy:#14213d; --navy-dark:#0d1628; --accent:#2f6feb;
+  --paper:#f7f8fa; --white:#fff; --line:#e3e6ec;
+  --ink:#1c2230; --ink-soft:#64748b;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--paper);color:var(--ink);}
+
+header{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);
+  color:#fff;padding:36px 20px 30px;text-align:center;
+}
+header .eyebrow{font-size:12px;letter-spacing:1px;font-weight:700;color:#9fb3d9;margin-bottom:6px;}
+header h1{margin:0 0 8px;font-size:clamp(20px,4vw,30px);}
+header p{margin:0;color:#c3cde0;font-size:14px;}
+
+main{max-width:960px;margin:0 auto;padding:26px 16px 60px;}
+
+#toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+#search{
+  flex:1;min-width:200px;padding:11px 14px;border:1px solid var(--line);
+  border-radius:9px;font-size:14px;background:#fff;
+}
+#refresh-btn{
+  padding:11px 16px;border:1px solid var(--line);background:#fff;border-radius:9px;
+  font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;
+}
+#refresh-btn:hover{background:#f0f2f5;}
+
+#state-box{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+#state-box .spinner{
+  width:28px;height:28px;border-radius:50%;border:3px solid var(--line);
+  border-top-color:var(--accent);margin:0 auto 14px;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+#state-box.hidden{display:none;}
+#state-box .retry{
+  margin-top:14px;padding:8px 16px;border:1px solid var(--navy);background:#fff;
+  color:var(--navy);border-radius:7px;font-weight:700;cursor:pointer;font-size:13px;
+}
+
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+#grid.hidden{display:none;}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;
+  box-shadow:0 1px 2px rgba(20,33,61,.04);transition:box-shadow .15s,transform .15s;
+}
+.card:hover{box-shadow:0 8px 20px rgba(20,33,61,.1);transform:translateY(-2px);}
+.card .tag{
+  align-self:flex-start;font-size:10.5px;font-weight:700;letter-spacing:.3px;
+  color:var(--accent);background:#eaf1ff;padding:3px 9px;border-radius:20px;
+}
+.card h3{margin:2px 0 0;font-size:16px;line-height:1.4;color:var(--navy);}
+.card p{margin:0;font-size:12.5px;color:var(--ink-soft);line-height:1.6;flex:1;}
+.card .cta{
+  margin-top:6px;font-size:13px;font-weight:700;color:var(--accent);
+  display:flex;align-items:center;gap:4px;
+}
+
+#empty-box{display:none;padding:50px 20px;text-align:center;color:var(--ink-soft);}
+#empty-box.show{display:block;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">BIMBINGAN BELAJAR H2 SOLUTION</div>
+  <h1>Tes Potensi Skolastik (TPS) — UTBK</h1>
+  <p>Pilih salah satu paket soal di bawah untuk mulai berlatih.</p>
+</header>
+
+<main>
+  <div id="toolbar">
+    <input type="text" id="search" placeholder="Cari paket soal…">
+    <button id="refresh-btn" title="Muat ulang daftar soal">⟳ Muat Ulang</button>
+  </div>
+
+  <div id="state-box">
+    <div class="spinner"></div>
+    <div id="state-text">Memuat daftar soal dari GitHub…</div>
+  </div>
+
+  <div id="empty-box">Belum ada paket soal yang diupload ke folder <code>soal/</code>.</div>
+
+  <div id="grid" class="hidden"></div>
+</main>
+
+<script>
+/* =========================================================
+   KONFIGURASI — ganti 3 baris ini sesuai repo GitHub Anda
+   ========================================================= */
+const GITHUB_OWNER  = "GANTI_DENGAN_USERNAME_GITHUB";
+const GITHUB_REPO   = "GANTI_DENGAN_NAMA_REPO";
+const GITHUB_BRANCH = "main";
+const SOAL_FOLDER   = "soal"; // semua file HTML soal disimpan di folder ini
+
+/* =========================================================
+   Cara kerja:
+   1. Panggil GitHub API sekali untuk daftar nama file di folder
+      SOAL_FOLDER (1x request, hemat kuota 60/jam GitHub API).
+   2. Untuk tiap file .html, ambil <title> & <meta name="description">
+      lewat raw.githubusercontent.com (CDN terpisah, TIDAK kena
+      kuota 60/jam di atas).
+   3. Render sebagai kartu. Klik kartu -> buka file soal tsb.
+
+   SUPAYA JUDUL & DESKRIPSI DI KARTU RAPI:
+   di file HTML soal baru Anda, isi di dalam <head>:
+     <title>Judul paket soal Anda</title>
+     <meta name="description" content="Keterangan singkat paket ini">
+   ========================================================= */
+
+const stateBox = document.getElementById("state-box");
+const stateText = document.getElementById("state-text");
+const grid = document.getElementById("grid");
+const emptyBox = document.getElementById("empty-box");
+const searchInput = document.getElementById("search");
+const refreshBtn = document.getElementById("refresh-btn");
+
+let allCards = []; // {title, desc, path}
+
+function setState(kind, text, showRetry){
+  stateBox.classList.remove("hidden");
+  grid.classList.add("hidden");
+  emptyBox.classList.remove("show");
+  stateBox.innerHTML = (kind==="loading" ? '<div class="spinner"></div>' : "") +
+    '<div id="state-text"></div>' +
+    (showRetry ? '<button class="retry" id="retry-btn">Coba Lagi</button>' : "");
+  stateBox.querySelector("#state-text").textContent = text;
+  if(showRetry){
+    document.getElementById("retry-btn").addEventListener("click", loadDaftarSoal);
+  }
+}
+
+async function loadDaftarSoal(){
+  if(GITHUB_OWNER.indexOf("GANTI_DENGAN") === 0 || GITHUB_REPO.indexOf("GANTI_DENGAN") === 0){
+    setState("error", "Dashboard belum dikonfigurasi. Isi GITHUB_OWNER & GITHUB_REPO di dalam file ini.", false);
+    return;
+  }
+  setState("loading", "Memuat daftar soal dari GitHub…", false);
+  try{
+    const listUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${SOAL_FOLDER}?ref=${GITHUB_BRANCH}`;
+    const res = await fetch(listUrl, { headers: { "Accept": "application/vnd.github+json" } });
+
+    if(res.status === 403){
+      setState("error", "Kuota pemanggilan GitHub (60/jam per jaringan) sedang habis. Coba lagi dalam beberapa menit.", true);
+      return;
+    }
+    if(res.status === 404){
+      setState("error", `Folder "${SOAL_FOLDER}/" belum ada di repo. Buat folder itu lalu upload file soal ke dalamnya.`, true);
+      return;
+    }
+    if(!res.ok){
+      setState("error", "Gagal memuat daftar soal (status " + res.status + "). Coba lagi.", true);
+      return;
+    }
+
+    const items = await res.json();
+    const htmlFiles = items.filter(it => it.type === "file" && /\.html?$/i.test(it.name));
+
+    if(htmlFiles.length === 0){
+      stateBox.classList.add("hidden");
+      emptyBox.classList.add("show");
+      return;
+    }
+
+    // Ambil <title> & deskripsi tiap file lewat raw.githubusercontent.com (tanpa kuota API)
+    const results = await Promise.all(htmlFiles.map(async (file) => {
+      try{
+        const r = await fetch(file.download_url);
+        const text = await r.text();
+        const titleMatch = text.match(/<title>([^<]*)<\/title>/i);
+        const descMatch = text.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
+        return {
+          title: titleMatch ? titleMatch[1].trim() : file.name.replace(/\.html?$/i,""),
+          desc: descMatch ? descMatch[1].trim() : "",
+          path: SOAL_FOLDER + "/" + file.name
+        };
+      } catch(err){
+        return { title: file.name.replace(/\.html?$/i,""), desc: "", path: SOAL_FOLDER + "/" + file.name };
+      }
+    }));
+
+    results.sort((a,b)=>a.title.localeCompare(b.title, "id"));
+    allCards = results;
+    renderGrid(allCards);
+    stateBox.classList.add("hidden");
+    grid.classList.remove("hidden");
+  } catch(err){
+    setState("error", "Tidak ada koneksi internet atau GitHub tidak bisa diakses. Coba lagi.", true);
+  }
+}
+
+function renderGrid(cards){
+  grid.innerHTML = "";
+  if(cards.length === 0){
+    grid.classList.add("hidden");
+    emptyBox.classList.add("show");
+    emptyBox.textContent = "Tidak ada paket soal yang cocok dengan pencarianmu.";
+    return;
+  }
+  emptyBox.classList.remove("show");
+  grid.classList.remove("hidden");
+  cards.forEach(c=>{
+    const a = document.createElement("a");
+    a.className = "card";
+    a.href = c.path;
+    a.innerHTML = `
+      <span class="tag">PAKET SOAL</span>
+      <h3>${escapeHtml(c.title)}</h3>
+      <p>${escapeHtml(c.desc || "Klik untuk mulai mengerjakan paket soal ini.")}</p>
+      <span class="cta">Kerjakan Soal →</span>
+    `;
+    grid.appendChild(a);
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+searchInput.addEventListener("input", ()=>{
+  const q = searchInput.value.trim().toLowerCase();
+  const filtered = q ? allCards.filter(c =>
+    c.title.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)
+  ) : allCards;
+  renderGrid(filtered);
+});
+
+refreshBtn.addEventListener("click", loadDaftarSoal);
+
+loadDaftarSoal();
+</script>
+</body>
+</html>
